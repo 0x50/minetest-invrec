@@ -12,10 +12,10 @@ invrec.m_Name = 	"invrecipe:recipes"
 invrec.m_Title = 	"Craft guide"
 
 invrec._f = 		""
+invrec._rs =		4
 invrec.items = 		{}
 invrec.groups = 	{}
 invrec.pdata = 		{}
-invrec._rs =		4
 
 --------------------------------------------------------------
 -- get_item_group for multiple group(s)
@@ -205,7 +205,10 @@ invrec.update_gui = function(player)
 	-- Show list of items
 	local parseitem = invrec.items
 	if(invrec.pdata[p].query) then
-		invrec.search(player)
+		if(invrec.pdata[p].ns) then
+			invrec.search(player)
+			invrec.pdata[p].ns = nil;
+		end
 		parseitem = invrec.pdata[p].qitems
 	end
 	
@@ -217,8 +220,6 @@ invrec.update_gui = function(player)
 			i = i+1
 		end
 	end
-	
-	invrec.pdata[p].qitems = {} -- clear 
 	
 	-- Show pages count
 	invrec._f = invrec._f .. 
@@ -307,6 +308,7 @@ invrec.events = function (self, player, context, fields)
 				q = minetest.formspec_escape(q);
 				invrec.pdata[p].query = q;
 				invrec.pdata[p].page.pid = 1
+				invrec.pdata[p].ns = 1;
 			end
 		end
 		if fields.invrec_search_reset then
@@ -344,6 +346,7 @@ invrec.events = function (self, player, context, fields)
 					end
 					invrec.pdata[p].query = minetest.formspec_escape(i:sub(8));
 					invrec.pdata[p].page.pid = 1
+					invrec.pdata[p].ns = 1;
 				break
 			end
 			if (i:sub(0,7) == "invnot:") then
@@ -370,10 +373,19 @@ minetest.register_on_joinplayer(function(player)
 	end
 		
 	if (invrec.pdata[p] == nil) then
-		invrec.pdata[p] = {page = {pid = 1, max = math.floor(#invrec.items/(invrec._rs*8) + 1)}, query = nil, recipe = {name = nil, cid = 1}, qitems = {}}
+		invrec.pdata[p] = {page = {pid = 1, max = math.floor(#invrec.items/(invrec._rs*8) + 1)}, query = nil, ns = nil, recipe = {name = nil, cid = 1}, qitems = {}}
 	end
 		
 	invrec.update_gui(player)
+end)
+--------------------------------------------------------------
+-- Clear some data
+--------------------------------------------------------------
+minetest.register_on_leaveplayer(function(player)
+	local p = player:get_player_name();
+		
+	invrec.pdata[p].qitems = {};
+	invrec.pdata[p].ns = 1;
 end)
 
 --------------------------------------------------------------
