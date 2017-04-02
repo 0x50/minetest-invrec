@@ -1,6 +1,6 @@
 --------------------------------------------------------------
---			Inventory Recipe Page for Minetest Game.
---					v0.0.01c
+--	Inventory Recipe Page for Minetest Game.
+--	v0.0.02
 --
 --	License: GPLv3	 <0x50000@gmail.com>
 --  Version tested: 0.4.15
@@ -218,6 +218,8 @@ invrec.update_gui = function(player)
 		end
 	end
 	
+	invrec.pdata[p].qitems = {} -- clear 
+	
 	-- Show pages count
 	invrec._f = invrec._f .. 
 		"label[1.0,"..tostring(invrec._rs+3.7+ 0.25)..";" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page.pid)) .. " / " .. invrec.pdata[p].page.max .. "]"
@@ -300,7 +302,10 @@ invrec.events = function (self, player, context, fields)
 				invrec.pdata[p].qitems = {}
 				invrec.pdata[p].page.max = math.floor(#invrec.items/(invrec._rs*8) + 1);
 			else
-				invrec.pdata[p].query = minetest.formspec_escape(fields.invrec_search_input);
+				local q = fields.invrec_search_input; 
+				q = string.sub(q,0,64);
+				q = minetest.formspec_escape(q);
+				invrec.pdata[p].query = q;
 				invrec.pdata[p].page.pid = 1
 			end
 		end
@@ -369,16 +374,6 @@ minetest.register_on_joinplayer(function(player)
 	end
 		
 	invrec.update_gui(player)
-end)
-
---------------------------------------------------------------
--- Clear some data...
---------------------------------------------------------------
-minetest.register_on_leaveplayer(function(player)
-	local p = player:get_player_name();
-		
-	invrec.pdata[p].qitems = {} -- server got mad if we do not this
-	minetest.chat_send_all( dump(invrec.pdata));
 end)
 
 --------------------------------------------------------------
