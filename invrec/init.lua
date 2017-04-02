@@ -2,7 +2,7 @@
 --			Inventory Recipe Page for Minetest Game.
 --					v0.0.01c
 --
---	License: GPLv3	 <wrazhevsky@gmail.com>
+--	License: GPLv3	 <0x50000@gmail.com>
 --  Version tested: 0.4.15
 --------------------------------------------------------------
 
@@ -369,6 +369,16 @@ minetest.register_on_joinplayer(function(player)
 	end
 		
 	invrec.update_gui(player)
+end)
+
+--------------------------------------------------------------
+-- Clear some data...
+--------------------------------------------------------------
+minetest.register_on_leaveplayer(function(player)
+	local p = player:get_player_name();
+		
+	invrec.pdata[p].qitems = {} -- server got mad if we do not this
+	minetest.chat_send_all( dump(invrec.pdata));
 end)
 
 --------------------------------------------------------------
