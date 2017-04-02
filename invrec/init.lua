@@ -213,14 +213,14 @@ invrec.update_gui = function(player)
 	if(#parseitem > 0) then
 		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*invrec._rs*8) do
 			if(i >= invrec._rs*8) then break end
-			invrec._f = invrec._f .. "item_image_button["..(i%8)..","..(math.floor(i/8)+4.7)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
+			invrec._f = invrec._f .. "item_image_button["..(i%8)..","..(math.floor(i/8)+3.5)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
 			i = i+1
 		end
 	end
 	
 	-- Show pages count
 	invrec._f = invrec._f .. 
-		"label[1.0,3.7;" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page.pid)) .. " / " .. invrec.pdata[p].page.max .. "]"
+		"label[1.0,"..tostring(invrec._rs+3.7+ 0.25)..";" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page.pid)) .. " / " .. invrec.pdata[p].page.max .. "]"
 	
 	-- Show recipe and alternate
 	if(invrec.pdata[p].recipe.name) then
@@ -267,19 +267,19 @@ invrec.update_gui = function(player)
 	
 	-- Show control buttons
 	invrec._f = invrec._f .. 
-		"button[0,3.54;0.8,0.9;invrec_prev;<]" ..
-		"tooltip[invrec_prev;Previous page]" ..
-		"button[2.1,3.54;0.8,0.9;invrec_next;>]" .. 
-		"tooltip[invrec_next;Next page]" ..
-		"button[5.8,3.7;1.5,0.5;invrec_search;Search]" .. 
-		"field_close_on_enter[invrec_search_input;false]" .. 
-		"button[7.245,3.7;0.8,0.5;invrec_search_reset;X]" .. 
+		"button[0,"..tostring(invrec._rs+3.54 + 0.25)..";0.8,0.9;invrec_prev;<]" ..
+		"tooltip[invrec_prev;Previous page]"..
+		"button[2.1,"..tostring(invrec._rs+3.54 + 0.25)..";0.8,0.9;invrec_next;>]"..
+		"tooltip[invrec_next;Next page]"..
+		"button[5.8,"..tostring(invrec._rs+3.7 + 0.25)..";1.5,0.5;invrec_search;Search]" .. 
+		"field_close_on_enter[invrec_search_input;false]" .. 		
+		"button[7.245,"..tostring(invrec._rs+3.7 + 0.25)..";0.8,0.5;invrec_search_reset;X]" .. 
 		"tooltip[invrec_search_reset;Reset search]"
 	
 	if(invrec.pdata[p].query) then
-		invrec._f = invrec._f .. "field[3.2,3.8;3.0,1;invrec_search_input;;".. tostring(invrec.pdata[p].query) .."]";
+		invrec._f = invrec._f .. "field[3.2,"..tostring(invrec._rs+3.8+ 0.25)..";3.0,1;invrec_search_input;;".. tostring(invrec.pdata[p].query) .."]";
 	else
-		invrec._f = invrec._f .. "field[3.2,3.8;3.0,1;invrec_search_input;; ]";
+		invrec._f = invrec._f .. "field[3.2,"..tostring(invrec._rs+3.8+ 0.25)..";3.0,1;invrec_search_input;; ]";
 	end
 
 end
