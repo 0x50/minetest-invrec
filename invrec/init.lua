@@ -1,6 +1,6 @@
 --------------------------------------------------------------
 --			Inventory Recipe Page for Minetest Game.
---					v0.0.01b
+--					v0.0.01c
 --
 --	License: GPLv3	 <wrazhevsky@gmail.com>
 --  Version tested: 0.4.15
@@ -15,6 +15,7 @@ invrec._f = 		""
 invrec.items = 		{}
 invrec.groups = 	{}
 invrec.pdata = 		{}
+invrec._rs =		4
 
 --------------------------------------------------------------
 -- get_item_group for multiple group(s)
@@ -142,7 +143,7 @@ invrec.search = function(player)
 		table.sort(invrec.pdata[p].qitems)
 	end
 	
-	invrec.pdata[p].page.max = math.floor(#invrec.pdata[p].qitems/(3*8) + 1);
+	invrec.pdata[p].page.max = math.floor(#invrec.pdata[p].qitems/(invrec._rs*8) + 1);
 end
 
 --------------------------------------------------------------
@@ -210,8 +211,8 @@ invrec.update_gui = function(player)
 	
 	local i = 0
 	if(#parseitem > 0) then
-		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*3*8) do
-			if(i >= 3*8) then break end
+		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*invrec._rs*8) do
+			if(i >= invrec._rs*8) then break end
 			invrec._f = invrec._f .. "item_image_button["..(i%8)..","..(math.floor(i/8)+4.7)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
 			i = i+1
 		end
@@ -297,7 +298,7 @@ invrec.events = function (self, player, context, fields)
 			if(fields.invrec_search_input == "") then
 				invrec.pdata[p].query = nil
 				invrec.pdata[p].qitems = {}
-				invrec.pdata[p].page.max = math.floor(#invrec.items/(3*8) + 1);
+				invrec.pdata[p].page.max = math.floor(#invrec.items/(invrec._rs*8) + 1);
 			else
 				invrec.pdata[p].query = minetest.formspec_escape(fields.invrec_search_input);
 				invrec.pdata[p].page.pid = 1
@@ -305,7 +306,7 @@ invrec.events = function (self, player, context, fields)
 		end
 		if fields.invrec_search_reset then
 			invrec.pdata[p].query = nil
-			invrec.pdata[p].page.max = math.floor(#invrec.items/(3*8) + 1);
+			invrec.pdata[p].page.max = math.floor(#invrec.items/(invrec._rs*8) + 1);
 			invrec.pdata[p].page.pid = 1
 		end
 		if fields.invrec_alternate then
@@ -364,7 +365,7 @@ minetest.register_on_joinplayer(function(player)
 	end
 		
 	if (invrec.pdata[p] == nil) then
-		invrec.pdata[p] = {page = {pid = 1, max = math.floor(#invrec.items/(3*8) + 1)}, query = nil, recipe = {name = nil, cid = 1}, qitems = {}}
+		invrec.pdata[p] = {page = {pid = 1, max = math.floor(#invrec.items/(invrec._rs*8) + 1)}, query = nil, recipe = {name = nil, cid = 1}, qitems = {}}
 	end
 		
 	invrec.update_gui(player)
@@ -376,6 +377,7 @@ end)
 
 if(rawget(_G, "inventory_plus")) then
 	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_ipp.lua")
+	invrec._rs = 3	-- height is 7.5
 else
 	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_sfinv.lua")
 end
