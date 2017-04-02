@@ -142,7 +142,7 @@ invrec.search = function(player)
 		table.sort(invrec.pdata[p].qitems)
 	end
 	
-	invrec.pdata[p].page.max = math.floor(#invrec.pdata[p].qitems/(4*8) + 1);
+	invrec.pdata[p].page.max = math.floor(#invrec.pdata[p].qitems/(3*8) + 1);
 end
 
 --------------------------------------------------------------
@@ -210,8 +210,8 @@ invrec.update_gui = function(player)
 	
 	local i = 0
 	if(#parseitem > 0) then
-		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*4*8) do
-			if(i >= 4*8) then break end
+		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*3*8) do
+			if(i >= 3*8) then break end
 			invrec._f = invrec._f .. "item_image_button["..(i%8)..","..(math.floor(i/8)+4.7)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
 			i = i+1
 		end
@@ -297,7 +297,7 @@ invrec.events = function (self, player, context, fields)
 			if(fields.invrec_search_input == "") then
 				invrec.pdata[p].query = nil
 				invrec.pdata[p].qitems = {}
-				invrec.pdata[p].page.max = math.floor(#invrec.items/(4*8) + 1);
+				invrec.pdata[p].page.max = math.floor(#invrec.items/(3*8) + 1);
 			else
 				invrec.pdata[p].query = minetest.formspec_escape(fields.invrec_search_input);
 				invrec.pdata[p].page.pid = 1
@@ -305,7 +305,7 @@ invrec.events = function (self, player, context, fields)
 		end
 		if fields.invrec_search_reset then
 			invrec.pdata[p].query = nil
-			invrec.pdata[p].page.max = math.floor(#invrec.items/(4*8) + 1);
+			invrec.pdata[p].page.max = math.floor(#invrec.items/(3*8) + 1);
 			invrec.pdata[p].page.pid = 1
 		end
 		if fields.invrec_alternate then
@@ -364,7 +364,7 @@ minetest.register_on_joinplayer(function(player)
 	end
 		
 	if (invrec.pdata[p] == nil) then
-		invrec.pdata[p] = {page = {pid = 1, max = math.floor(#invrec.items/(4*8) + 1)}, query = nil, recipe = {name = nil, cid = 1}, qitems = {}}
+		invrec.pdata[p] = {page = {pid = 1, max = math.floor(#invrec.items/(3*8) + 1)}, query = nil, recipe = {name = nil, cid = 1}, qitems = {}}
 	end
 		
 	invrec.update_gui(player)
