@@ -1,6 +1,6 @@
 --------------------------------------------------------------
 --	Inventory Recipe Page for Minetest Game.
---	v0.0.02
+--	v0.0.02b
 --
 --	License: GPLv3	 <0x50000@gmail.com>
 --  Version tested: 0.4.15
@@ -12,7 +12,7 @@ invrec.m_Name = 	"invrecipe:recipes"
 invrec.m_Title = 	"Craft guide"
 
 invrec._f = 		""
-invrec._rs =		4
+invrec._rs =		4	-- height is 8.5
 invrec.items = 		{}
 invrec.groups = 	{}
 invrec.pdata = 		{}
@@ -392,9 +392,9 @@ end)
 -- GUI/MOD bridge
 --------------------------------------------------------------
 
-if(rawget(_G, "inventory_plus")) then
-	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_ipp.lua")
+if(rawget(_G, "inventory_plus") and not minetest.setting_getbool("creative_mode")) then
 	invrec._rs = 3	-- height is 7.5
+	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_ipp.lua")
 else
 	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_sfinv.lua")
 end
