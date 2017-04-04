@@ -262,8 +262,9 @@ invrec.update_gui = function(player)
 		end
 		
 		if(maxrecipe > 1) then
-			invrec._f = invrec._f .. 	
-						"label[0.0,2.0;Recipe  "  .. minetest.colorize("#FFFF00", tostring(recipeid)) .. " / " .. math.floor(maxrecipe) .. "]" ..
+			invrec._f = invrec._f ..
+						"label[0.0,1.55;Recipe:]" ..
+						"label[0.0,2.0;"  .. minetest.colorize("#FFFF00", tostring(recipeid)) .. " / " .. tostring(math.floor(maxrecipe)) .. "]" ..
 						"button[0.0,2.65;2,0.5;invrec_alternate;Alternate]"
 		end
 	end
