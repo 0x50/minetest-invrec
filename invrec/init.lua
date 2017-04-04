@@ -135,7 +135,7 @@ invrec.search = function(player)
 		for _ , item in pairs(invrec.items) do
 			if minetest.registered_items[item] then
 				local str = minetest.registered_items[item].description:lower();
-				if string.match(str, query) then
+				if string.find(str, query, nil, true) then
 				  table.insert(invrec.pdata[p].qitems, item)
 				end
 			end
