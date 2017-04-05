@@ -2,7 +2,7 @@
 -- Inventory Plus I/O
 --------------------------------------------------------------
 minetest.register_on_joinplayer(function(player)
-	inventory_plus.register_button(player,"invrec",invrec.m_Title)
+	inventory_plus.register_button(player,"invrec",invrec.title)
 end)
 
 minetest.register_on_player_receive_fields(function(player,formname,fields)
