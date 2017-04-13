@@ -1,17 +1,16 @@
 --------------------------------------------------------------
 -- Native support 
 --------------------------------------------------------------
-sfinv.register_page("invrecipe:recipes", {
+sfinv.register_page("invrec:recipes", {
 	title = invrec.title,
 	get = function(self, player, context)
-		return sfinv.make_formspec(player, context, invrec._f, false)
+		return sfinv.make_formspec(player, context, invrec.update_gui(player), false)
 	end,
 	on_player_receive_fields = function(self, player, context, fields)
-		invrec.events(self, player, context, fields);
-		sfinv.set_player_inventory_formspec(player, context);
-	end,
-	on_enter = function(self, player, context)
-		invrec.events(self, player, context, nil);
-		sfinv.set_player_inventory_formspec(player, context);
+		if fields.invrec then
+			if invrec.events(nil, player, nil, fields) then 
+				sfinv.set_player_inventory_formspec(player, context)
+			end
+		end
 	end
 });
