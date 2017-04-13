@@ -1,6 +1,6 @@
 --------------------------------------------------------------
 --	Inventory Recipe Page for Minetest Game.
---	v0.0.02c
+--	v0.0.03
 --
 --	License: GPLv3  <0x50000@gmail.com>
 --  Version tested: 0.4.15
@@ -52,6 +52,7 @@ end
 -- get_table_size
 --------------------------------------------------------------
 local get_table_size = function(table)
+	assert(table)
 	local i = 0
 
 	for _ in pairs(table) do
@@ -108,7 +109,7 @@ invrec.init = function()
 end
 
 --------------------------------------------------------------
--- Search elements 
+-- Search elements
 --------------------------------------------------------------
 invrec.search = function(player)
 	local p = player:get_player_name()
@@ -139,7 +140,7 @@ end
 invrec.item_craft_button = function(x,y,parent,item)
 	local is_group = false
 	local img = item
-	
+
 	local desc = string.format("No items found for %s group", minetest.colorize("#FFFF00", tostring(item:sub(7))) )
 	local tooltip = ""
 
@@ -165,12 +166,12 @@ invrec.item_craft_button = function(x,y,parent,item)
 
 	if parent.type == "cooking" then
 		if minetest.registered_items[item] then
-			desc = string.format("%s \nCooking time: %ssec", 
+			desc = string.format("%s\nCooking time: %ssec", 
 				minetest.registered_items[item].description,
 				minetest.colorize("#FFFF00", tostring(minetest.get_craft_result({method = "cooking", width = 1, items = {ItemStack(item)}}).time)))
 			tooltip = "tooltip[invrec:".. item ..";".. desc.."]"
 		else
-			desc = string.format("%s \nCooking time: %ssec", 
+			desc = string.format("%s\nCooking time: %ssec", 
 				desc,
 				minetest.colorize("#FFFF00", tostring(minetest.get_craft_result({method = "cooking", width = 1, items = {ItemStack(img)}}).time)))
 			tooltip = "tooltip[invgrp:".. item ..";".. desc.."]"
@@ -191,7 +192,7 @@ invrec.update_gui = function(player)
 	local p = player:get_player_name()
 
 	-- Reset formspec and show correct scheme indeed
-	invrec._f = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"
+	local formdata = "field[0,0;0,0;invrec;;]listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"
 
 	-- Show list of items
 	local parseitem = invrec.items
@@ -207,13 +208,13 @@ invrec.update_gui = function(player)
 	if #parseitem > 0 then
 		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*invrec._rs*8) do
 			if i >= invrec._rs*8 then break end
-			invrec._f = invrec._f .. "item_image_button["..(i%8)..","..(math.floor(i/8)+3.5)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
+			formdata = formdata .. "item_image_button["..(i%8)..","..(math.floor(i/8)+3.5)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
 			i = i+1
 		end
 	end
 
 	-- Show pages count
-	invrec._f = invrec._f .. "label[1.0,"..tostring(invrec._rs+3.7+ 0.25)..";" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page.pid)) .. " / " .. invrec.pdata[p].page.max .. "]"
+	formdata = formdata .. "label[1.0,"..tostring(invrec._rs+3.7+ 0.25)..";" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page.pid)) .. " / " .. invrec.pdata[p].page.max .. "]"
 
 	-- Show recipe and alternate
 	if invrec.pdata[p].recipe.name then
@@ -229,7 +230,7 @@ invrec.update_gui = function(player)
 		local item = {}
 
 		if get_table_size(craft[recipeid].items) == 1 then
-			invrec._f = invrec._f .. invrec.item_craft_button(0%1 + 2 + 2, 0 + 0.3, craft[recipeid], craft[recipeid].items[1])
+			formdata = formdata .. invrec.item_craft_button(0%1 + 3 + 2, 0 + 0.3, craft[recipeid], craft[recipeid].items[1])
 		else
 			local i = 0
 			local j = craft[recipeid].width
@@ -237,22 +238,22 @@ invrec.update_gui = function(player)
 			if j > 3 then j = 3 end --FIXME: Why flour width=15?
 			while i < 3*3 do
 				if craft[recipeid].items[i+1] then
-					invrec._f = invrec._f .. invrec.item_craft_button(i%j + 2 + (3 - j), math.floor(i/j) + 0.3, craft[recipeid], craft[recipeid].items[i+1])
+					formdata = formdata .. invrec.item_craft_button(i%j + 3 + (3 - j), math.floor(i/j) + 0.3, craft[recipeid], craft[recipeid].items[i+1])
 				end
 				i = i + 1
 			end
 		end
 
-		invrec._f  = invrec._f  ..
-					"image[5.00,0.25;1,1;gui_furnace_arrow_bg.png^[transformR270]" ..
-					"item_image_button[6.0,0.3;1.05,1.05;".. craft[recipeid].output ..";invnot:".. itemname ..";]"
+		formdata  = formdata  ..
+					"image[6.00,0.25;1,1;gui_furnace_arrow_bg.png^[transformR270]" ..
+					"item_image_button[7.0,0.3;1.05,1.05;".. craft[recipeid].output ..";invnot:".. itemname ..";]"
 
 		if craft[recipeid].type == "cooking" then
-			invrec._f   = invrec._f   .. "image[5.00,1.25;1,1;default_furnace_fire_fg.png]"
+			formdata   = formdata   .. "image[6.00,1.25;1,1;default_furnace_fire_fg.png]"
 		end
 
 		if maxrecipe > 1 then
-			invrec._f = invrec._f ..
+			formdata = formdata ..
 						"label[0.0,1.55;Recipe:]" ..
 						"label[0.0,2.0;"  .. minetest.colorize("#FFFF00", tostring(recipeid)) .. " / " .. tostring(maxrecipe) .. "]" ..
 						"button[0.0,2.65;2,0.5;invrec_alternate;Alternate]"
@@ -260,7 +261,7 @@ invrec.update_gui = function(player)
 	end
 
 	-- Show control buttons
-	invrec._f = invrec._f .. 
+	formdata = formdata .. 
 		"button[0,"..tostring(invrec._rs+3.54 + 0.25)..";0.8,0.9;invrec_prev;<]" ..
 		"tooltip[invrec_prev;Previous page]"..
 		"button[2.1,"..tostring(invrec._rs+3.54 + 0.25)..";0.8,0.9;invrec_next;>]"..
@@ -271,82 +272,80 @@ invrec.update_gui = function(player)
 		"tooltip[invrec_search_reset;Reset search]"
 
 	if invrec.pdata[p].query then
-		invrec._f = invrec._f .. "field[3.2,"..tostring(invrec._rs+3.8+ 0.25)..";3.0,1;invrec_search_input;;".. tostring(invrec.pdata[p].query) .."]"
+		formdata = formdata .. "field[3.2,"..tostring(invrec._rs+3.8+ 0.25)..";3.0,1;invrec_search_input;;".. tostring(invrec.pdata[p].query) .."]"
 	else
-		invrec._f = invrec._f .. "field[3.2,"..tostring(invrec._rs+3.8+ 0.25)..";3.0,1;invrec_search_input;; ]"
+		formdata = formdata .. "field[3.2,"..tostring(invrec._rs+3.8+ 0.25)..";3.0,1;invrec_search_input;; ]"
 	end
+
+	return formdata
 end
 --------------------------------------------------------------
 -- Catch Events
 --------------------------------------------------------------
 invrec.events = function (self, player, context, fields)
 	local p = player:get_player_name()
-	local need = true
 
-	if fields then
-		if (fields.key_enter_field == "invrec_search_input" and fields.key_enter == "true") or fields.invrec_search then
-			if invrec.pdata[p].query == minetest.formspec_escape(fields.invrec_search_input) then
-				need = nil
-			end
-			if fields.invrec_search_input == "" then
-				invrec.pdata[p].query = nil
-				invrec.pdata[p].qitems = {}
-				invrec.pdata[p].page.max = math.ceil(#invrec.items/(invrec._rs*8))
-			else
-				local q = fields.invrec_search_input
-				q = string.sub(q,0,64)
-				q = minetest.formspec_escape(q)
-				invrec.pdata[p].query = q
+	if (fields.key_enter_field == "invrec_search_input" and fields.key_enter == "true") or fields.invrec_search then
+		if invrec.pdata[p].query == minetest.formspec_escape(fields.invrec_search_input) then
+			return nil
+		end
+		if fields.invrec_search_input == "" then
+			invrec.pdata[p].query = nil
+			invrec.pdata[p].qitems = {}
+			invrec.pdata[p].page.max = math.ceil(#invrec.items/(invrec._rs*8))
+		else
+			local q = fields.invrec_search_input
+			q = string.sub(q,0,64)
+			q = minetest.formspec_escape(q)
+			invrec.pdata[p].query = q
+			invrec.pdata[p].page.pid = 1
+			invrec.pdata[p].ns = 1
+		end
+	end
+	if fields.invrec_search_reset then
+		invrec.pdata[p].query = nil
+		invrec.pdata[p].page.max = math.ceil(#invrec.items/(invrec._rs*8))
+		invrec.pdata[p].page.pid = 1
+	end
+	if fields.invrec_alternate then
+		invrec.pdata[p].recipe.cid = invrec.pdata[p].recipe.cid + 1
+	end
+	if fields.invrec_next then
+		invrec.pdata[p].page.pid = invrec.pdata[p].page.pid + 1
+		if invrec.pdata[p].page.max < invrec.pdata[p].page.pid then invrec.pdata[p].page.pid = 1 end
+	end
+	if fields.invrec_prev then
+		invrec.pdata[p].page.pid = invrec.pdata[p].page.pid - 1
+		if invrec.pdata[p].page.pid < 1 then invrec.pdata[p].page.pid = invrec.pdata[p].page.max end
+	end
+	for i in pairs(fields) do
+		if i:sub(0,7) == "invrec:" then
+				for _, items in pairs(invrec.items) do
+					if items == i:sub(8)  then
+						if invrec.pdata[p].recipe.name == i:sub(8) then
+							return nil
+						end
+						invrec.pdata[p].recipe.cid = 1
+						invrec.pdata[p].recipe.name = i:sub(8)
+					end
+				end
+			break
+		end
+		if i:sub(0,7) == "invgrp:" then
+				if invrec.pdata[p].query == i:sub(8) then
+					return nil
+				end
+				invrec.pdata[p].query = minetest.formspec_escape(i:sub(8))
 				invrec.pdata[p].page.pid = 1
 				invrec.pdata[p].ns = 1
-			end
+			break
 		end
-		if fields.invrec_search_reset then
-			invrec.pdata[p].query = nil
-			invrec.pdata[p].page.max = math.ceil(#invrec.items/(invrec._rs*8))
-			invrec.pdata[p].page.pid = 1
-		end
-		if fields.invrec_alternate then
-			invrec.pdata[p].recipe.cid = invrec.pdata[p].recipe.cid + 1
-		end
-		if fields.invrec_next then
-			invrec.pdata[p].page.pid = invrec.pdata[p].page.pid + 1
-			if invrec.pdata[p].page.max < invrec.pdata[p].page.pid then invrec.pdata[p].page.pid = 1 end
-		end
-		if fields.invrec_prev then
-			invrec.pdata[p].page.pid = invrec.pdata[p].page.pid - 1
-			if invrec.pdata[p].page.pid < 1 then invrec.pdata[p].page.pid = invrec.pdata[p].page.max end
-		end
-		for i in pairs(fields) do
-			if i:sub(0,7) == "invrec:" then
-					for _, items in pairs(invrec.items) do
-						if items == i:sub(8)  then
-							if invrec.pdata[p].recipe.name == i:sub(8) then
-								need = nil
-							end
-							invrec.pdata[p].recipe.cid = 1
-							invrec.pdata[p].recipe.name = i:sub(8)
-						end
-					end
-				break
-			end
-			if i:sub(0,7) == "invgrp:" then
-					if(invrec.pdata[p].query == i:sub(8)) then
-						need = nil
-					end
-					invrec.pdata[p].query = minetest.formspec_escape(i:sub(8))
-					invrec.pdata[p].page.pid = 1
-					invrec.pdata[p].ns = 1
-				break
-			end
-			if i:sub(0,7) == "invnot:" then
-				need = nil
-				break
-			end
+		if i:sub(0,7) == "invnot:" then
+			return nil
 		end
 	end
 
-	if need then invrec.update_gui(player) end
+	return true
 end
 
 --------------------------------------------------------------
@@ -362,8 +361,6 @@ minetest.register_on_joinplayer(function(player)
 	if not invrec.pdata[p] then
 		invrec.pdata[p] = {page = {pid = 1, max = math.ceil(#invrec.items/(invrec._rs*8))}, query = nil, ns = nil, recipe = {name = nil, cid = 1}, qitems = {}}
 	end
-
-	invrec.update_gui(player)
 end)
 
 --------------------------------------------------------------
@@ -378,12 +375,17 @@ end)
 --------------------------------------------------------------
 -- GUI/MOD bridge
 --------------------------------------------------------------
-if(rawget(_G, "inventory_plus") and not minetest.setting_getbool("creative_mode")) then
-	invrec._rs = 3	-- height is 7.5
-	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_ipp.lua")
+if minetest.setting_getbool("invrec_craft_book") then
+	invrec._rs = 4	-- height is 8.5
+	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_craftbook.lua")
 else
-	invrec._rs = 4	-- height is 7.5
-	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_sfinv.lua")
+	if(rawget(_G, "inventory_plus") and not minetest.setting_getbool("creative_mode")) then
+		invrec._rs = 3	-- height is 7.5
+		dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_ipp.lua")
+	else
+		invrec._rs = 4	-- height is 8.5
+		dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_sfinv.lua")
+	end
 end
 
 minetest.log("action", "[MOD]"..minetest.get_current_modname().." -- loaded from "..minetest.get_modpath(minetest.get_current_modname()))
