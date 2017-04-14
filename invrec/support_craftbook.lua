@@ -3,15 +3,14 @@
 --------------------------------------------------------------
 local craftbook_on_use = function(itemstack, player)
 	local p = player:get_player_name()
-
-	minetest.show_formspec(p, "invrec:craftbook", "size[8,8.5]bgcolor[#080808BB;true]" .. default.gui_bg .. default.gui_bg_img .. invrec.update_gui(player))
+	minetest.show_formspec(p, "invrec:craftbook", "size[8,8.5]bgcolor[#080808BB;true]"..default.gui_bg..default.gui_bg_img..default.gui_slots..invrec.update_gui(player))
 end
 
 minetest.register_on_player_receive_fields(function(player,formname,fields)
 	if fields.invrec then -- handle events
 		local p = player:get_player_name()
 		if invrec.events(nil, player, nil, fields) then
-			minetest.show_formspec(p, "invrec:craftbook", "size[8,8.5] bgcolor[#080808BB;true]".. default.gui_bg .. default.gui_bg_img .. invrec.update_gui(player))
+			minetest.show_formspec(p, "invrec:craftbook", "size[8,8.5] bgcolor[#080808BB;true]"..default.gui_bg..default.gui_bg_img..default.gui_slots..invrec.update_gui(player))
 		end
 	end
 end)
