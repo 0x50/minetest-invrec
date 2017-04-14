@@ -12,8 +12,8 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 	end
 	if fields.invrec then
 		if invrec.events(nil, player, nil, fields) then 
-			inventory_plus.set_inventory_formspec(player,  "size[8,7.5] bgcolor[#080808BB;true] button[0,0.4;2,.5;main;Back]" 
-				.. default.gui_bg .. default.gui_bg_img .. invrec.update_gui(player))
+			inventory_plus.set_inventory_formspec(player,  "size[8,7.5] button[0,0.4;2,.5;main;Back]" 
+				..default.gui_bg..default.gui_bg_img..default.gui_slots..invrec.update_gui(player))
 		end
 	end
 end)
