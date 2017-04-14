@@ -1,8 +1,8 @@
 --------------------------------------------------------------
 --	Inventory Recipe Page for Minetest Game.
---	v0.0.03
+--	v0.1
 --
---	License: GPLv3  <0x50000@gmail.com>
+--	License: GPLv3  <github 0x50>
 --  Version tested: 0.4.15
 --------------------------------------------------------------
 invrec = {
@@ -70,7 +70,7 @@ invrec.init = function()
 	for name in pairs(minetest.registered_items) do
 		if (name and name ~= "") then
 			rec = minetest.get_all_craft_recipes(name)
-			if rec then
+			if rec and minetest.get_item_group(name, "not_in_craft_guide") == 0 then
 				table.insert(invrec.items, name)
 				for _,recipe in ipairs(rec) do
 					if (recipe and recipe.items and recipe.type) then
@@ -84,7 +84,7 @@ invrec.init = function()
 			end
 		end
 	end
-
+	
 	table.sort(invrec.items)
 	table.sort(invrec.groups)
 
@@ -99,7 +99,7 @@ invrec.init = function()
 	for j in ipairs(invrec.groups) do
 		i = {}
 		for k in pairs(minetest.registered_items) do
-			if is_item_in_group( k, invrec.groups[j]) then
+			if is_item_in_group( k, invrec.groups[j]) and (minetest.get_item_group(k, "not_in_craft_guide") == 0) then
 				table.insert(i, k)
 			end
 		end
@@ -131,7 +131,7 @@ invrec.search = function(player)
 		table.sort(invrec.pdata[p].qitems)
 	end
 
-	invrec.pdata[p].page.max = math.floor(#invrec.pdata[p].qitems/(invrec._rs*8) + 1)
+	invrec.pdata[p].page_max = math.floor(#invrec.pdata[p].qitems/(invrec._rs*8) + 1)
 end
 
 --------------------------------------------------------------
@@ -190,23 +190,19 @@ end
 --------------------------------------------------------------
 invrec.update_gui = function(player)
 	local p = player:get_player_name()
-
-	-- Reset formspec and show correct scheme indeed
-	local formdata = "field[0,0;0,0;invrec;;]listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"
+	local formdata = "field[0,0;0,0;invrec;;]"
 
 	-- Show list of items
 	local parseitem = invrec.items
 	if invrec.pdata[p].query then
-		if invrec.pdata[p].ns then
-			invrec.search(player)
-			invrec.pdata[p].ns = nil
-		end
+		invrec.search(player)
+		invrec.pdata[p].ns = nil
 		parseitem = invrec.pdata[p].qitems
 	end
 
 	local i = 0
 	if #parseitem > 0 then
-		for _ , item in next,parseitem,((invrec.pdata[p].page.pid - 1 )*invrec._rs*8) do
+		for _ , item in next,parseitem,((invrec.pdata[p].page_id - 1 )*invrec._rs*8) do
 			if i >= invrec._rs*8 then break end
 			formdata = formdata .. "item_image_button["..(i%8)..","..(math.floor(i/8)+3.5)..";1.05,1.05;".. item  ..";invrec:" .. item .. ";] "
 			i = i+1
@@ -214,18 +210,18 @@ invrec.update_gui = function(player)
 	end
 
 	-- Show pages count
-	formdata = formdata .. "label[1.0,"..tostring(invrec._rs+3.7+ 0.25)..";" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page.pid)) .. " / " .. invrec.pdata[p].page.max .. "]"
+	formdata = formdata .. "label[1.0,"..tostring(invrec._rs+3.7+ 0.25)..";" .. minetest.colorize("#FFFF00", tostring(invrec.pdata[p].page_id)) .. " / " .. invrec.pdata[p].page_max .. "]"
 
 	-- Show recipe and alternate
-	if invrec.pdata[p].recipe.name then
-		local itemname = invrec.pdata[p].recipe.name
+	if invrec.pdata[p].item then
+		local itemname = invrec.pdata[p].item
 		local craft = minetest.get_all_craft_recipes(itemname)
-		local recipeid = invrec.pdata[p].recipe.cid
+		local recipeid = invrec.pdata[p].craft_id
 		local maxrecipe = #craft
 
 		if recipeid > maxrecipe then
 			recipeid = 1
-			invrec.pdata[p].recipe.cid = 1
+			invrec.pdata[p].craft_id = 1
 		end
 		local item = {}
 
@@ -279,73 +275,92 @@ invrec.update_gui = function(player)
 
 	return formdata
 end
+
 --------------------------------------------------------------
 -- Catch Events
 --------------------------------------------------------------
 invrec.events = function (self, player, context, fields)
 	local p = player:get_player_name()
 
+	if (fields.invrec_next or fields.invrec_prev) and (invrec.pdata[p].page_max == 1) then
+		return nil
+	end
+	if fields.invrec_next then
+		invrec.pdata[p].page_id = invrec.pdata[p].page_id + 1
+		if invrec.pdata[p].page_max < invrec.pdata[p].page_id then invrec.pdata[p].page_id = 1 end
+		return true
+	end
+	if fields.invrec_prev then
+		invrec.pdata[p].page_id = invrec.pdata[p].page_id - 1
+		if invrec.pdata[p].page_id < 1 then invrec.pdata[p].page_id = invrec.pdata[p].page_max end
+		return true
+	end
+	if fields.invrec_search_reset then
+		if (invrec.pdata[p].query == nil and invrec.pdata[p].page_id == 1) then
+			return nil
+		end
+		invrec.pdata[p].query = nil
+		invrec.pdata[p].qitems = {}
+		invrec.pdata[p].page_max = math.ceil(#invrec.items/(invrec._rs*8))
+		invrec.pdata[p].page_id = 1
+		return true
+	end
+	if fields.invrec_alternate then
+		invrec.pdata[p].craft_id = invrec.pdata[p].craft_id + 1
+		return true
+	end
 	if (fields.key_enter_field == "invrec_search_input" and fields.key_enter == "true") or fields.invrec_search then
 		if invrec.pdata[p].query == minetest.formspec_escape(fields.invrec_search_input) then
 			return nil
 		end
 		if fields.invrec_search_input == "" then
+			if invrec.pdata[p].query == nil then 
+				return nil
+			end
 			invrec.pdata[p].query = nil
 			invrec.pdata[p].qitems = {}
-			invrec.pdata[p].page.max = math.ceil(#invrec.items/(invrec._rs*8))
+			invrec.pdata[p].page_max = math.ceil(#invrec.items/(invrec._rs*8))
+			return true
 		else
 			local q = fields.invrec_search_input
 			q = string.sub(q,0,64)
 			q = minetest.formspec_escape(q)
 			invrec.pdata[p].query = q
-			invrec.pdata[p].page.pid = 1
-			invrec.pdata[p].ns = 1
+			invrec.pdata[p].page_id = 1
+			return true
 		end
 	end
-	if fields.invrec_search_reset then
-		invrec.pdata[p].query = nil
-		invrec.pdata[p].page.max = math.ceil(#invrec.items/(invrec._rs*8))
-		invrec.pdata[p].page.pid = 1
-	end
-	if fields.invrec_alternate then
-		invrec.pdata[p].recipe.cid = invrec.pdata[p].recipe.cid + 1
-	end
-	if fields.invrec_next then
-		invrec.pdata[p].page.pid = invrec.pdata[p].page.pid + 1
-		if invrec.pdata[p].page.max < invrec.pdata[p].page.pid then invrec.pdata[p].page.pid = 1 end
-	end
-	if fields.invrec_prev then
-		invrec.pdata[p].page.pid = invrec.pdata[p].page.pid - 1
-		if invrec.pdata[p].page.pid < 1 then invrec.pdata[p].page.pid = invrec.pdata[p].page.max end
+	if fields.invrec == invrec.title then
+		return true
 	end
 	for i in pairs(fields) do
 		if i:sub(0,7) == "invrec:" then
-				for _, items in pairs(invrec.items) do
-					if items == i:sub(8)  then
-						if invrec.pdata[p].recipe.name == i:sub(8) then
-							return nil
-						end
-						invrec.pdata[p].recipe.cid = 1
-						invrec.pdata[p].recipe.name = i:sub(8)
+			for _, items in pairs(invrec.items) do
+				if items == i:sub(8)  then
+					if invrec.pdata[p].item == items then
+						return nil
 					end
+					invrec.pdata[p].craft_id = 1
+					invrec.pdata[p].item = i:sub(8)
+					return true
 				end
-			break
+			end
+			return nil
 		end
 		if i:sub(0,7) == "invgrp:" then
-				if invrec.pdata[p].query == i:sub(8) then
-					return nil
-				end
-				invrec.pdata[p].query = minetest.formspec_escape(i:sub(8))
-				invrec.pdata[p].page.pid = 1
-				invrec.pdata[p].ns = 1
-			break
+			if invrec.pdata[p].query == minetest.formspec_escape(i:sub(8)) then
+				return nil
+			end
+			invrec.pdata[p].query = minetest.formspec_escape(i:sub(8))
+			invrec.pdata[p].page_id = 1
+			return true
 		end
 		if i:sub(0,7) == "invnot:" then
 			return nil
 		end
 	end
-
-	return true
+	
+	return nil
 end
 
 --------------------------------------------------------------
@@ -359,7 +374,7 @@ minetest.register_on_joinplayer(function(player)
 		invrec._int = true
 	end
 	if not invrec.pdata[p] then
-		invrec.pdata[p] = {page = {pid = 1, max = math.ceil(#invrec.items/(invrec._rs*8))}, query = nil, ns = nil, recipe = {name = nil, cid = 1}, qitems = {}}
+		invrec.pdata[p] = {page_id = 1,page_max = math.ceil(#invrec.items/(invrec._rs*8)),query = nil,item = nil,craft_id = 1,qitems = {}}
 	end
 end)
 
@@ -369,7 +384,6 @@ end)
 minetest.register_on_leaveplayer(function(player)
 	local p = player:get_player_name()
 	invrec.pdata[p].qitems = {}
-	invrec.pdata[p].ns = 1
 end)
 
 --------------------------------------------------------------
