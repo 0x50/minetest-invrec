@@ -389,11 +389,11 @@ end)
 --------------------------------------------------------------
 -- GUI/MOD bridge
 --------------------------------------------------------------
-if minetest.setting_getbool("invrec_craft_book") then
+if minetest.settings:get_bool("invrec_craft_book") then
 	invrec._rs = 4	-- height is 8.5
 	dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_craftbook.lua")
 else
-	if(rawget(_G, "inventory_plus") and not minetest.setting_getbool("creative_mode")) then
+	if(rawget(_G, "inventory_plus") and not minetest.settings:get_bool("creative_mode")) then
 		invrec._rs = 3	-- height is 7.5
 		dofile(minetest.get_modpath( minetest.get_current_modname() ).."/support_ipp.lua")
 	else
