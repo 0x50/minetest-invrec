@@ -360,6 +360,10 @@ invrec.events = function (self, player, context, fields)
 		end
 	end
 	
+	if fields.invrec == "" then
+		return true
+	end
+	
 	return nil
 end
 
